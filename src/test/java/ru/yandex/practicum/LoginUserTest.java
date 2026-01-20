@@ -12,6 +12,8 @@ import org.junit.Test;
 import ru.yandex.practicum.models.User;
 import ru.yandex.practicum.steps.UserSteps;
 
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
 import static org.hamcrest.CoreMatchers.is;
 
 public class LoginUserTest {
@@ -26,15 +28,16 @@ public class LoginUserTest {
         user.setEmail("test_" + RandomStringUtils.randomAlphabetic(6) + "@example.com");
         user.setPassword(RandomStringUtils.randomAlphabetic(6));
         user.setName(RandomStringUtils.randomAlphabetic(6));
+        accessToken = userSteps.extractAccessToken(userSteps.createUser(user));
     }
 
     @Test
     @DisplayName("Logging in of existing user")
     @Description("Chek that user is logged in if user exists")
     public void shouldLoginExistingUser(){
-        accessToken = userSteps.extractAccessToken(userSteps.createUser(user));
         userSteps.loginUser(user)
                 .then()
+                .statusCode(SC_OK)
                 .body("success", is(true));
     }
 
@@ -42,10 +45,10 @@ public class LoginUserTest {
     @DisplayName("Logging in of user with wrong login")
     @Description("Chek that user isn't logged in if login(email) field is empty")
     public void shouldNotLoginUserWithWrongLogin(){
-        accessToken = userSteps.extractAccessToken(userSteps.createUser(user));
         user.setEmail("test_" + RandomStringUtils.randomAlphabetic(6) + "@example.com");
         userSteps.loginUser(user)
                 .then()
+                .statusCode(SC_UNAUTHORIZED)
                 .body("success", is(false));
     }
 
@@ -53,10 +56,10 @@ public class LoginUserTest {
     @DisplayName("Logging in of user with wrong password")
     @Description("Chek that user isn't logged in if password field is empty")
     public void shouldNotLoginUserWithWrongPassword(){
-        accessToken = userSteps.extractAccessToken(userSteps.createUser(user));
         user.setPassword(RandomStringUtils.randomAlphabetic(6));
         userSteps.loginUser(user)
                 .then()
+                .statusCode(SC_UNAUTHORIZED)
                 .body("success", is(false));
     }
 
@@ -64,11 +67,11 @@ public class LoginUserTest {
     @DisplayName("Logging in of user with wrong login and password")
     @Description("Chek that user isn't logged in if login(email) and password field is empty")
     public void shouldNotLoginUserWithWrongLoginAndPassword(){
-        accessToken = userSteps.extractAccessToken(userSteps.createUser(user));
         user.setEmail("test_" + RandomStringUtils.randomAlphabetic(6) + "@example.com");
         user.setPassword(RandomStringUtils.randomAlphabetic(6));
         userSteps.loginUser(user)
                 .then()
+                .statusCode(SC_UNAUTHORIZED)
                 .body("success", is(false));
     }
 

@@ -13,6 +13,8 @@ import org.junit.Test;
 import ru.yandex.practicum.models.User;
 import ru.yandex.practicum.steps.UserSteps;
 
+import static org.apache.http.HttpStatus.SC_FORBIDDEN;
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.CoreMatchers.is;
 
 public class CreateUserTest {
@@ -37,8 +39,20 @@ public class CreateUserTest {
     public void shouldCreateUniqueUser(){
         userSteps.createUser(user)
                 .then()
+                .statusCode(SC_OK)
                 .body("success", is(true));
         accessToken = userSteps.extractAccessToken(userSteps.loginUser(user));
+    }
+
+    @Test
+    @DisplayName("Creation of second same user returns 403")
+    @Description("Chek that user isn't created if same user was already created")
+    public void shouldReturnCode403CreateSameUser(){
+        userSteps.createUser(user);
+        accessToken = userSteps.extractAccessToken(userSteps.loginUser(user));
+        userSteps.createUser(user)
+                .then()
+                .statusCode(SC_FORBIDDEN);
     }
 
     @Test
@@ -52,13 +66,32 @@ public class CreateUserTest {
     }
 
     @Test
+    @DisplayName("Creation of user without email returns 403")
+    @Description("Chek that user isn't created if email field is empty")
+    public void shouldReturnCode403CreateUserWithoutEmail(){
+        user.setEmail("");
+        userSteps.createUser(user)
+                .then()
+                .statusCode(SC_FORBIDDEN);
+    }
+
+    @Test
     @DisplayName("Creation of user without email")
     @Description("Chek that user isn't created if email field is empty")
     public void shouldNotCreateUserWithoutEmail(){
         user.setEmail("");
-        userSteps.createUser(user);
         errorMessage = userSteps.extractErrorMessage(userSteps.createUser(user));
         Assert.assertEquals("Email, password and name are required fields", errorMessage);
+    }
+
+    @Test
+    @DisplayName("Creation of user without password returns 403")
+    @Description("Chek that user isn't created if password field is empty")
+    public void shouldReturnCode403CreateUserWithoutPassword(){
+        user.setPassword("");
+        userSteps.createUser(user)
+                .then()
+                .statusCode(SC_FORBIDDEN);
     }
 
     @Test
@@ -66,9 +99,18 @@ public class CreateUserTest {
     @Description("Chek that user isn't created if password field is empty")
     public void shouldNotCreateUserWithoutPassword(){
         user.setPassword("");
-        userSteps.createUser(user);
         errorMessage = userSteps.extractErrorMessage(userSteps.createUser(user));
         Assert.assertEquals("Email, password and name are required fields", errorMessage);
+    }
+
+    @Test
+    @DisplayName("Creation of user without name returns 403")
+    @Description("Chek that user isn't created if name field is empty")
+    public void shouldReturnCode403CreateUserWithoutName(){
+        user.setName("");
+        userSteps.createUser(user)
+                .then()
+                .statusCode(SC_FORBIDDEN);
     }
 
     @Test
@@ -76,7 +118,6 @@ public class CreateUserTest {
     @Description("Chek that user isn't created if name field is empty")
     public void shouldNotCreateUserWithoutName(){
         user.setName("");
-        userSteps.createUser(user);
         errorMessage = userSteps.extractErrorMessage(userSteps.createUser(user));
         Assert.assertEquals("Email, password and name are required fields", errorMessage);
     }
