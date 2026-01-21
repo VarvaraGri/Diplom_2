@@ -7,7 +7,6 @@ import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import ru.yandex.practicum.models.User;
@@ -22,7 +21,6 @@ public class CreateUserTest {
     private User user;
     private final UserSteps userSteps = new UserSteps();
     private String accessToken;
-    private String errorMessage;
 
     @Before
     public void setUp(){
@@ -41,7 +39,6 @@ public class CreateUserTest {
                 .then()
                 .statusCode(SC_OK)
                 .body("success", is(true));
-        accessToken = userSteps.extractAccessToken(userSteps.loginUser(user));
     }
 
     @Test
@@ -52,17 +49,8 @@ public class CreateUserTest {
         accessToken = userSteps.extractAccessToken(userSteps.loginUser(user));
         userSteps.createUser(user)
                 .then()
-                .statusCode(SC_FORBIDDEN);
-    }
-
-    @Test
-    @DisplayName("Creation of second same user")
-    @Description("Chek that user isn't created if same user was already created")
-    public void shouldNotCreateSameUser(){
-        userSteps.createUser(user);
-        accessToken = userSteps.extractAccessToken(userSteps.loginUser(user));
-        errorMessage = userSteps.extractErrorMessage(userSteps.createUser(user));
-        Assert.assertEquals("User already exists", errorMessage);
+                .statusCode(SC_FORBIDDEN)
+                .body("message", is("User already exists"));
     }
 
     @Test
@@ -72,16 +60,8 @@ public class CreateUserTest {
         user.setEmail("");
         userSteps.createUser(user)
                 .then()
-                .statusCode(SC_FORBIDDEN);
-    }
-
-    @Test
-    @DisplayName("Creation of user without email")
-    @Description("Chek that user isn't created if email field is empty")
-    public void shouldNotCreateUserWithoutEmail(){
-        user.setEmail("");
-        errorMessage = userSteps.extractErrorMessage(userSteps.createUser(user));
-        Assert.assertEquals("Email, password and name are required fields", errorMessage);
+                .statusCode(SC_FORBIDDEN)
+                .body("message", is("Email, password and name are required fields"));
     }
 
     @Test
@@ -91,16 +71,8 @@ public class CreateUserTest {
         user.setPassword("");
         userSteps.createUser(user)
                 .then()
-                .statusCode(SC_FORBIDDEN);
-    }
-
-    @Test
-    @DisplayName("Creation of user without password")
-    @Description("Chek that user isn't created if password field is empty")
-    public void shouldNotCreateUserWithoutPassword(){
-        user.setPassword("");
-        errorMessage = userSteps.extractErrorMessage(userSteps.createUser(user));
-        Assert.assertEquals("Email, password and name are required fields", errorMessage);
+                .statusCode(SC_FORBIDDEN)
+                .body("message", is("Email, password and name are required fields"));
     }
 
     @Test
@@ -110,20 +82,13 @@ public class CreateUserTest {
         user.setName("");
         userSteps.createUser(user)
                 .then()
-                .statusCode(SC_FORBIDDEN);
-    }
-
-    @Test
-    @DisplayName("Creation of user without name")
-    @Description("Chek that user isn't created if name field is empty")
-    public void shouldNotCreateUserWithoutName(){
-        user.setName("");
-        errorMessage = userSteps.extractErrorMessage(userSteps.createUser(user));
-        Assert.assertEquals("Email, password and name are required fields", errorMessage);
+                .statusCode(SC_FORBIDDEN)
+                .body("message", is("Email, password and name are required fields"));
     }
 
     @After
     public void tearDown(){
+        accessToken = userSteps.extractAccessToken(userSteps.loginUser(user));
         if(accessToken != null){
             userSteps.deleteUser(accessToken);
         }
